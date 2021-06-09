@@ -1,29 +1,24 @@
-const cars = require("./cars-model.js");
+const express = require('express');
+const Car = require("./cars-model.js");
 const mw = require("./cars-middleware.js");
-const router = require("express").Router();
+const router = express.Router();
 
-router.get("/", (req, res) => {
-	cars
-		.getAll()
-		.then((data) => {
-			res.status(200).json(data);
-		})
-		.catch((err) => {
-			console.log(err);
-			res.status(500).json({ message: err.message });
-		});
+router.get("/", async (req, res, next) => {
+try {
+	const cars = await Car.getAll()
+	res.json(cars)
+} catch (err){
+	next(err)
+}
 });
 
-router.get("/:id", mw.checkCarId, (req, res) => {
-	cars
-		.getById(req.params.id)
-		.then((car) => {
-			res.status(200).json(car);
-		})
-		.catch((err) => {
-			console.log(err);
-			res.status(500).json({ message: err.message });
-		});
+router.get("/:id", mw.checkCarId, async (req, res, next) => {
+	try {
+		const cars = await Car.getById(req.params.id)
+		res.json(cars)
+	} catch (err){
+		next(err)
+	}
 });
 
 router.post(
@@ -31,7 +26,7 @@ router.post(
 	mw.checkCarPayload,
 	mw.checkVinNumberUnique,
 	mw.checkVinNumberValid,
-	(req, res) => {
+	(req, res, next) => {
 		cars
 			.create(req.body)
 			.then((car) => {
@@ -50,7 +45,7 @@ router.put(
 	mw.checkCarPayload,
 	mw.checkVinNumberUnique,
 	mw.checkVinNumberValid,
-	(req, res) => {
+	(req, res, next) => {
 		cars
 			.updateById(req.params.id, req.body)
 			.then(async () => {
@@ -64,7 +59,7 @@ router.put(
 	}
 );
 
-router.delete("/:id", mw.checkCarId, (req, res) => {
+router.delete("/:id", mw.checkCarId, (req, res, next) => {
 	cars
 		.deleteById(req.params.id)
 		.then((car) => {
